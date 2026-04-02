@@ -64,6 +64,16 @@ export default function SettingsModal({ onClose }) {
               <div style={{ ...styles.toggleThumb, transform: save.settings.notifications ? 'translateX(18px)' : 'translateX(2px)' }} />
             </button>
           </div>
+
+          <div style={styles.settingRowToggle}>
+            <span style={styles.settingLabel}>🎭 Reduced Motion</span>
+            <button
+              style={{ ...styles.toggle, background: save.settings.reducedMotion ? '#BF5FFF' : 'rgba(255,255,255,0.1)' }}
+              onClick={() => updateSetting('reducedMotion', !save.settings.reducedMotion)}
+            >
+              <div style={{ ...styles.toggleThumb, transform: save.settings.reducedMotion ? 'translateX(18px)' : 'translateX(2px)' }} />
+            </button>
+          </div>
         </div>
 
         <div style={styles.section}>

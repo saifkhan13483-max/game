@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useGame } from '../context/GameContext.jsx';
 import { getLevelById } from '../data/levels.js';
+import { playLevelComplete, playStarReveal } from '../audio/audioEngine.js';
 
-function Confetti() {
-  const pieces = Array.from({ length: 30 }, (_, i) => ({
+function Confetti({ reduced }) {
+  if (reduced) return null;
+  const pieces = Array.from({ length: 40 }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     color: ['#00F5FF', '#BF5FFF', '#FFD700', '#FF2D78', '#39FF14'][i % 5],
     delay: `${Math.random() * 0.8}s`,
-    duration: `${1.5 + Math.random() * 1}s`,
-    size: `${6 + Math.random() * 8}px`,
+    duration: `${1.5 + Math.random() * 1.2}s`,
+    size: `${5 + Math.random() * 8}px`,
   }));
 
   return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
       {pieces.map(p => (
         <div key={p.id} style={{
           position: 'absolute',
@@ -29,31 +31,48 @@ function Confetti() {
   );
 }
 
-function StarAnimation({ count, delay = 0 }) {
+function StarAnimation({ count, delay = 0, reduced }) {
   const [shown, setShown] = useState(0);
 
   useEffect(() => {
+    playLevelComplete(count);
     const timers = [];
     for (let i = 1; i <= count; i++) {
-      timers.push(setTimeout(() => setShown(i), delay + i * 400));
+      timers.push(setTimeout(() => {
+        setShown(i);
+        playStarReveal();
+      }, delay + i * (reduced ? 100 : 420)));
     }
     return () => timers.forEach(t => clearTimeout(t));
-  }, [count, delay]);
+  }, [count, delay, reduced]);
 
   return (
-    <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+    <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
       {[1, 2, 3].map(i => (
         <span key={i} style={{
-          fontSize: 44,
-          opacity: i <= shown ? 1 : 0.15,
-          transform: i <= shown ? 'scale(1)' : 'scale(0.5)',
-          transition: 'opacity 0.3s, transform 0.3s',
-          filter: i <= shown ? 'drop-shadow(0 0 12px #FFD700)' : 'none',
-          animation: i <= shown ? 'starBurst 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards' : 'none',
+          fontSize: 46,
+          opacity: i <= shown ? 1 : 0.1,
+          transform: i <= shown ? 'scale(1)' : 'scale(0.4)',
+          transition: reduced ? 'none' : 'opacity 0.35s, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          filter: i <= shown ? 'drop-shadow(0 0 16px #FFD700)' : 'none',
+          display: 'inline-block',
         }}>⭐</span>
       ))}
     </div>
   );
+}
+
+async function shareResult(stars, levelName) {
+  const starStr = '⭐'.repeat(stars);
+  const text = `I just solved "${levelName}" with ${stars} star${stars !== 1 ? 's' : ''} in Shadow Shift! ${starStr} 🎮✨`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Shadow Shift', text, url: window.location.href });
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert('Result copied to clipboard!');
+    }
+  } catch {}
 }
 
 export default function CompletionScreen() {
@@ -61,7 +80,7 @@ export default function CompletionScreen() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 200);
+    const t = setTimeout(() => setReady(true), 100);
     return () => clearTimeout(t);
   }, []);
 
@@ -74,38 +93,30 @@ export default function CompletionScreen() {
   const levelDef = isDaily ? null : getLevelById(levelId);
   const previousBest = save.stars[levelId] || 0;
   const isNewBest = stars > previousBest;
+  const reduced = save.settings?.reducedMotion;
 
-  const starMessages = {
-    3: 'Perfect!',
-    2: 'Great job!',
-    1: 'Solved!',
-  };
+  const starMessages = { 3: 'Perfect!', 2: 'Great Job!', 1: 'Solved!' };
+  const levelName = isDaily ? 'Daily Challenge' : (levelDef?.name || `Level ${levelId}`);
 
   return (
     <div style={styles.container}>
-      {stars === 3 && <Confetti />}
+      {stars === 3 && <Confetti reduced={reduced} />}
 
-      <div style={styles.content} className="slide-up">
+      <div style={{ ...styles.content, opacity: ready ? 1 : 0, transform: ready ? 'translateY(0)' : 'translateY(20px)', transition: reduced ? 'none' : 'opacity 0.4s, transform 0.4s' }}>
+
         {/* Header */}
         <div style={styles.header}>
           <div className="orbitron glow-cyan" style={styles.solvedText}>
             {starMessages[stars]}
           </div>
-          {levelDef && (
-            <div style={styles.levelName}>{levelDef.name}</div>
-          )}
-          {isDaily && (
-            <div style={styles.levelName}>Daily Challenge</div>
+          <div style={styles.levelName}>{levelName}</div>
+          {isNewBest && stars > 1 && (
+            <div style={styles.newBest}>✦ New Best!</div>
           )}
         </div>
 
         {/* Stars */}
-        <div style={styles.starsSection}>
-          <StarAnimation count={stars} delay={300} />
-          {isNewBest && stars > 1 && (
-            <div style={styles.newBest} className="bounce-in">New Best!</div>
-          )}
-        </div>
+        <StarAnimation count={stars} delay={200} reduced={reduced} />
 
         {/* Stats */}
         <div style={styles.statsGrid}>
@@ -113,7 +124,7 @@ export default function CompletionScreen() {
             <div style={styles.statValue}>{moveCount}</div>
             <div style={styles.statLabel}>Moves Used</div>
           </div>
-          {levelDef && levelDef.moveLimit && (
+          {levelDef?.moveLimit && (
             <div style={styles.statCard}>
               <div style={{ ...styles.statValue, color: moveCount <= levelDef.perfectMoves ? '#39FF14' : '#FFD700' }}>
                 {levelDef.perfectMoves}
@@ -127,21 +138,20 @@ export default function CompletionScreen() {
           </div>
         </div>
 
-        {/* Stars message */}
+        {/* Improvement tip */}
         {stars < 3 && levelDef?.moveLimit && (
           <div style={styles.tipBox}>
             💡 {stars === 1
-              ? `Complete in ${levelDef.optimalMoves} moves for ⭐⭐`
-              : `Complete in ${levelDef.perfectMoves} moves for ⭐⭐⭐`}
+              ? `Try ${levelDef.optimalMoves} moves for ⭐⭐`
+              : `Try ${levelDef.perfectMoves} moves for ⭐⭐⭐`}
           </div>
         )}
 
-        {/* CTAs */}
+        {/* Action buttons */}
         <div style={styles.ctas}>
           {nextLevelId && !isDaily && (
             <button style={styles.primaryBtn} onClick={() => openLevel(nextLevelId)}>
-              <span>Next Level</span>
-              <span style={{ opacity: 0.7 }}>→</span>
+              Next Level →
             </button>
           )}
           {isDaily && (
@@ -151,23 +161,28 @@ export default function CompletionScreen() {
           )}
           {!isDaily && !nextLevelId && (
             <button style={styles.primaryBtn} onClick={() => setScreen('home')}>
-              All Done! 🎉
+              All Complete! 🎉
             </button>
           )}
+
           <div style={styles.secondaryBtns}>
             <button style={styles.secondaryBtn} onClick={() => openLevel(levelId, isDaily)}>
               Replay
             </button>
+            <button style={styles.secondaryBtn} onClick={() => shareResult(stars, levelName)}
+              title="Share your result">
+              Share 📤
+            </button>
             <button style={styles.secondaryBtn} onClick={() => setScreen('level-select')}>
-              Level Select
+              Levels
             </button>
           </div>
         </div>
 
-        {/* Coins display */}
+        {/* Coin total */}
         <div style={styles.coinsTotal}>
           <span style={{ color: '#FFD700' }}>💎 {save.coins}</span>
-          <span style={{ color: '#7B8DB0', marginLeft: 8 }}>total coins</span>
+          <span style={{ color: '#7B8DB0', marginLeft: 6 }}>total coins</span>
         </div>
       </div>
     </div>
@@ -183,79 +198,55 @@ const styles = {
   },
   content: {
     width: '100%', maxWidth: 400, padding: '0 24px',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22,
     position: 'relative', zIndex: 1,
   },
-  header: {
-    textAlign: 'center',
-  },
+  header: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 },
   solvedText: {
-    fontSize: 'clamp(32px, 8vw, 48px)',
+    fontSize: 'clamp(30px, 8vw, 46px)',
     fontWeight: 900, letterSpacing: '0.1em',
   },
-  levelName: {
-    fontSize: 14, color: '#7B8DB0', marginTop: 4,
-  },
-  starsSection: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-  },
+  levelName: { fontSize: 13, color: '#7B8DB0' },
   newBest: {
-    fontSize: 13, fontWeight: 700,
-    color: '#39FF14',
-    background: 'rgba(57,255,20,0.1)',
-    border: '1px solid rgba(57,255,20,0.3)',
-    borderRadius: 20, padding: '4px 16px',
-    letterSpacing: '0.08em',
+    fontSize: 13, fontWeight: 700, color: '#39FF14',
+    background: 'rgba(57,255,20,0.1)', border: '1px solid rgba(57,255,20,0.3)',
+    borderRadius: 20, padding: '3px 14px',
   },
-  statsGrid: {
-    display: 'flex', gap: 12, width: '100%', justifyContent: 'center',
-  },
+  statsGrid: { display: 'flex', gap: 10, width: '100%', justifyContent: 'center' },
   statCard: {
-    flex: 1, maxWidth: 100,
-    background: 'rgba(0,0,0,0.4)',
-    border: '1px solid rgba(0,245,255,0.15)',
-    borderRadius: 12, padding: '12px 8px',
-    textAlign: 'center',
+    flex: 1, maxWidth: 110,
+    background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,245,255,0.12)',
+    borderRadius: 12, padding: '12px 8px', textAlign: 'center',
   },
   statValue: {
     fontSize: 22, fontWeight: 700, color: '#00F5FF',
     fontFamily: 'Orbitron, monospace',
   },
   statLabel: {
-    fontSize: 10, color: '#7B8DB0', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em',
+    fontSize: 9, color: '#7B8DB0', marginTop: 4,
+    textTransform: 'uppercase', letterSpacing: '0.05em',
   },
   tipBox: {
-    padding: '10px 16px',
-    background: 'rgba(255,215,0,0.08)',
-    border: '1px solid rgba(255,215,0,0.2)',
-    borderRadius: 10, fontSize: 12, color: '#FFD700',
-    width: '100%', textAlign: 'center',
+    padding: '10px 16px', width: '100%',
+    background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)',
+    borderRadius: 10, fontSize: 12, color: '#FFD700', textAlign: 'center',
   },
-  ctas: {
-    width: '100%', display: 'flex', flexDirection: 'column', gap: 12,
-  },
+  ctas: { width: '100%', display: 'flex', flexDirection: 'column', gap: 10 },
   primaryBtn: {
-    width: '100%', padding: '16px 24px',
+    width: '100%', padding: '15px 24px',
     background: 'linear-gradient(135deg, #004A4A, #006868)',
     border: '1px solid rgba(0,245,255,0.5)',
     borderRadius: 14, color: '#00F5FF',
-    fontSize: 18, fontWeight: 700,
-    fontFamily: 'Orbitron, monospace', letterSpacing: '0.05em',
-    cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    fontSize: 17, fontWeight: 700,
+    fontFamily: 'Orbitron, monospace', letterSpacing: '0.05em', cursor: 'pointer',
     boxShadow: '0 0 20px rgba(0,245,255,0.2)',
   },
-  secondaryBtns: {
-    display: 'flex', gap: 12,
-  },
+  secondaryBtns: { display: 'flex', gap: 8 },
   secondaryBtn: {
-    flex: 1, padding: '12px',
-    background: 'transparent',
-    border: '1px solid rgba(255,255,255,0.15)',
+    flex: 1, padding: '11px 6px',
+    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
     borderRadius: 12, color: '#E8EAFF',
-    fontSize: 14, fontWeight: 600, cursor: 'pointer',
+    fontSize: 13, fontWeight: 600, cursor: 'pointer',
   },
-  coinsTotal: {
-    fontSize: 14,
-  },
+  coinsTotal: { fontSize: 13 },
 };

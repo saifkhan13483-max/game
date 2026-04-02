@@ -129,6 +129,16 @@ export default function HomeScreen() {
               </div>
             </div>
           </button>
+
+          <button style={styles.secondaryBtn} className="slide-up" onClick={() => setScreen('achievements')}>
+            <div style={styles.secondaryBtnContent}>
+              <span style={{ fontSize: 20 }}>🏆</span>
+              <div>
+                <div style={styles.secondaryBtnText}>Achievements</div>
+                <div style={styles.secondaryBtnSub}>{(save.achievements || []).length} / 30 unlocked</div>
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Bottom buttons */}
