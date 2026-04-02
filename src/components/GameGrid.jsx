@@ -1,34 +1,18 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { computeBeam } from '../engine/laserEngine.js';
-
-const CELL_TYPES = {
-  source: { label: '◉', color: '#00F5FF' },
-  crystal: { label: '◆', color: '#BF5FFF' },
-  blocker: { label: '■', color: '#FF2D78' },
-  'movable-blocker': { label: '■', color: '#FF7B00' },
-  'mirror-forward': { label: '/', color: '#BF5FFF' },
-  'mirror-backward': { label: '\\', color: '#BF5FFF' },
-  'movable-mirror-forward': { label: '/', color: '#E08FFF' },
-  'movable-mirror-backward': { label: '\\', color: '#E08FFF' },
-};
+import React, { useState, useCallback } from 'react';
 
 function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+
+const DIR_ARROW = ['→', '↓', '←', '↑'];
 
 export default function GameGrid({
   levelDef,
   grid,
+  beam,
   onMove,
   onRotate,
-  moveCount,
-  isComplete,
 }) {
   const [selected, setSelected] = useState(null); // { row, col }
-  const [dragSource, setDragSource] = useState(null);
-  const [dragPos, setDragPos] = useState(null);
-  const containerRef = useRef(null);
-  const { gridSize, source } = levelDef;
-
-  const beam = computeBeam(grid, source, gridSize);
+  const { gridSize } = levelDef;
 
   const isMovable = useCallback((cell) => {
     if (!cell) return false;
@@ -40,17 +24,16 @@ export default function GameGrid({
     const cell = grid[row][col];
 
     if (selected) {
-      // Something is already selected
       if (selected.row === row && selected.col === col) {
-        // Tap selected cell again → rotate
+        // Tap selected again → rotate it
         onRotate(row, col);
         setSelected(null);
       } else if (!cell) {
-        // Tap empty cell → move selected object here
+        // Tap empty cell → move selected here
         onMove(selected.row, selected.col, row, col);
         setSelected(null);
       } else if (isMovable(cell)) {
-        // Tap a different movable → switch selection
+        // Switch selection to different movable
         setSelected({ row, col });
       } else {
         // Tap fixed cell → deselect
@@ -59,35 +42,29 @@ export default function GameGrid({
       return;
     }
 
-    // Nothing selected yet — select movable
+    // Nothing selected — tap a movable to select it
     if (isMovable(cell)) {
       setSelected({ row, col });
     }
   }, [grid, selected, onRotate, onMove, isMovable]);
 
-  // eslint-disable-next-line no-unused-vars
-  const handleCellPointerUp = useCallback((e, row, col) => {
-    // Drag-and-drop handled via pointerDown logic above
-  }, []);
-
-  // eslint-disable-next-line no-unused-vars
-  const handleSelectedCellClick = useCallback((row, col) => {
-    // All logic handled in pointerDown
-  }, []);
-
-  // Calculate beam segments as canvas drawing instructions
-  const beamSegments = beam.segments;
+  const beamSegments = beam?.segments ?? [];
 
   return (
-    <div ref={containerRef} style={styles.wrapper}>
-      <div
-        style={{
-          ...styles.grid,
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-          gridTemplateRows: `repeat(${gridSize}, 1fr)`,
-        }}
-      >
-        {/* Beam overlay SVG */}
+    <div style={styles.wrapper}>
+      {/* Selection instruction banner */}
+      {selected && (
+        <div style={styles.instructionBanner}>
+          Tap an empty cell to <strong>move</strong> · Tap the mirror again to <strong>rotate</strong>
+        </div>
+      )}
+
+      <div style={{
+        ...styles.grid,
+        gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+        gridTemplateRows: `repeat(${gridSize}, 1fr)`,
+      }}>
+        {/* Beam SVG overlay */}
         <svg
           style={styles.beamSvg}
           viewBox={`0 0 ${gridSize} ${gridSize}`}
@@ -95,16 +72,7 @@ export default function GameGrid({
         >
           <defs>
             <filter id="beam-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="0.08" result="blur1"/>
-              <feGaussianBlur stdDeviation="0.04" result="blur2"/>
-              <feMerge>
-                <feMergeNode in="blur1"/>
-                <feMergeNode in="blur2"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-            <filter id="crystal-glow" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="0.15" result="blur"/>
+              <feGaussianBlur stdDeviation="0.1" result="blur"/>
               <feMerge>
                 <feMergeNode in="blur"/>
                 <feMergeNode in="SourceGraphic"/>
@@ -115,50 +83,32 @@ export default function GameGrid({
           {beamSegments.map((seg, i) => {
             const x1 = seg.c1 + 0.5;
             const y1 = seg.r1 + 0.5;
-            let x2, y2;
-            if (seg.exit) {
-              // Clamp to grid boundary
-              x2 = clamp(seg.c2 + 0.5, 0, gridSize);
-              y2 = clamp(seg.r2 + 0.5, 0, gridSize);
-            } else {
-              x2 = seg.c2 + 0.5;
-              y2 = seg.r2 + 0.5;
-            }
+            const x2 = seg.exit ? clamp(seg.c2 + 0.5, 0, gridSize) : seg.c2 + 0.5;
+            const y2 = seg.exit ? clamp(seg.r2 + 0.5, 0, gridSize) : seg.r2 + 0.5;
             return (
               <g key={i}>
-                {/* Outer glow */}
-                <line
-                  x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke={beam.hitCrystal ? '#00F5FF' : '#00C4CC'}
-                  strokeWidth="0.18"
-                  strokeLinecap="round"
-                  opacity="0.4"
-                  filter="url(#beam-glow)"
-                  style={{ animation: 'beamPulse 2s ease-in-out infinite' }}
+                {/* Glow halo */}
+                <line x1={x1} y1={y1} x2={x2} y2={y2}
+                  stroke="#00F5FF" strokeWidth="0.22" strokeLinecap="round"
+                  opacity="0.25" filter="url(#beam-glow)"
                 />
                 {/* Core beam */}
-                <line
-                  x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke="#00F5FF"
-                  strokeWidth="0.07"
-                  strokeLinecap="round"
+                <line x1={x1} y1={y1} x2={x2} y2={y2}
+                  stroke="#00F5FF" strokeWidth="0.08" strokeLinecap="round"
                   opacity="0.95"
                 />
               </g>
             );
           })}
 
-          {/* Crystal hit burst */}
-          {beam.hitCrystal && (
+          {/* Crystal pulse ring when hit */}
+          {beam?.hitCrystal && (
             <circle
               cx={levelDef.crystal.col + 0.5}
               cy={levelDef.crystal.row + 0.5}
-              r="0.35"
-              fill="none"
-              stroke="#BF5FFF"
-              strokeWidth="0.06"
-              opacity="0.7"
-              style={{ animation: 'crystalGlow 1.5s ease-in-out infinite' }}
+              r="0.38"
+              fill="none" stroke="#BF5FFF" strokeWidth="0.07" opacity="0.7"
+              style={{ animation: 'crystalGlow 1.2s ease-in-out infinite' }}
             />
           )}
         </svg>
@@ -167,8 +117,8 @@ export default function GameGrid({
         {Array.from({ length: gridSize }, (_, row) =>
           Array.from({ length: gridSize }, (_, col) => {
             const cell = grid[row][col];
-            const isSelectedCell = selected && selected.row === row && selected.col === col;
-            const isValidTarget = selected && !cell && !(row === selected.row && col === selected.col);
+            const isSelectedCell = selected?.row === row && selected?.col === col;
+            const isValidTarget = selected && !cell;
 
             return (
               <div
@@ -177,102 +127,97 @@ export default function GameGrid({
                   ...styles.cell,
                   ...(isSelectedCell ? styles.cellSelected : {}),
                   ...(isValidTarget ? styles.cellTarget : {}),
+                  cursor: (isMovable(cell) || (selected && !cell)) ? 'pointer' : 'default',
                 }}
                 onPointerDown={e => handleCellPointerDown(e, row, col)}
-                onPointerUp={e => handleCellPointerUp(e, row, col)}
-                onClick={() => selected && handleSelectedCellClick(row, col)}
               >
-                {cell && renderCell(cell, row, col, isSelectedCell, beam.hitCrystal, levelDef)}
+                {cell && renderCell(cell, isSelectedCell, beam?.hitCrystal, levelDef)}
               </div>
             );
           })
         )}
       </div>
-
-      {/* Selected object hint */}
-      {selected && (
-        <div style={styles.hint}>
-          Tap empty cell to move · Tap again to rotate
-        </div>
-      )}
     </div>
   );
 }
 
-function renderCell(cell, row, col, isSelected, hitCrystal, levelDef) {
-  const isCrystal = cell.type === 'crystal';
-  const isSource = cell.type === 'source';
-  const isBlocker = cell.type === 'blocker' || cell.type === 'movable-blocker';
-  const isMirror = cell.type.includes('mirror');
+function renderCell(cell, isSelected, hitCrystal) {
+  const { type } = cell;
 
-  if (isSource) {
-    const dirs = ['→', '↓', '←', '↑'];
+  // ── SOURCE ──
+  if (type === 'source') {
     return (
       <div style={styles.source}>
-        <div style={styles.sourceInner}>{dirs[cell.direction]}</div>
+        <div style={styles.sourceArrow}>{DIR_ARROW[cell.direction] ?? '→'}</div>
       </div>
     );
   }
 
-  if (isCrystal) {
+  // ── CRYSTAL ──
+  if (type === 'crystal') {
     return (
       <div style={{
         ...styles.crystal,
-        animation: hitCrystal ? 'crystalGlow 1s ease-in-out infinite' : 'crystalGlow 2s ease-in-out infinite',
         filter: hitCrystal
-          ? 'drop-shadow(0 0 8px #00F5FF) drop-shadow(0 0 16px #BF5FFF) drop-shadow(0 0 4px #FF2D78)'
-          : 'drop-shadow(0 0 4px #BF5FFF)',
-        transform: hitCrystal ? 'scale(1.2)' : 'scale(1)',
+          ? 'drop-shadow(0 0 10px #00F5FF) drop-shadow(0 0 18px #BF5FFF)'
+          : 'drop-shadow(0 0 5px #BF5FFF)',
+        transform: hitCrystal ? 'scale(1.25)' : 'scale(1)',
         transition: 'transform 0.3s, filter 0.3s',
+        animation: 'crystalGlow 2s ease-in-out infinite',
       }}>
         ◆
       </div>
     );
   }
 
-  if (isBlocker) {
+  // ── BLOCKER ──
+  if (type === 'blocker' || type === 'movable-blocker') {
+    const movable = type === 'movable-blocker';
     return (
       <div style={{
         ...styles.blocker,
-        background: cell.type === 'movable-blocker'
-          ? 'linear-gradient(135deg, #CC4400, #FF7B00)'
-          : 'linear-gradient(135deg, #880022, #FF2D78)',
-        borderColor: cell.type === 'movable-blocker' ? '#FF7B00' : '#FF2D78',
-        boxShadow: isSelected ? '0 0 12px #FF7B00' : 'none',
-        cursor: cell.type === 'movable-blocker' ? 'pointer' : 'default',
+        background: movable
+          ? 'linear-gradient(135deg, #8B3000, #FF7B00)'
+          : 'linear-gradient(135deg, #6B0020, #CC2255)',
+        borderColor: movable ? '#FF7B00' : '#FF2D78',
+        boxShadow: isSelected ? `0 0 14px ${movable ? '#FF7B00' : '#FF2D78'}` : 'none',
       }}>
-        {cell.type === 'movable-blocker' && <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)' }}>DRAG</span>}
+        {movable && <div style={styles.movableTag}>MOVE</div>}
       </div>
     );
   }
 
-  if (isMirror) {
-    const isForward = cell.type.includes('forward');
-    const isMovableCell = cell.type.startsWith('movable-');
+  // ── MIRROR ──
+  if (type.includes('mirror')) {
+    const isForward = type.includes('forward');
+    const movable = type.startsWith('movable-');
     return (
       <div style={{
         ...styles.mirror,
         borderColor: isSelected ? '#FFD700' : '#BF5FFF',
-        boxShadow: isSelected
-          ? '0 0 16px #FFD700, inset 0 0 8px rgba(255,215,0,0.2)'
-          : '0 0 8px rgba(191,95,255,0.4)',
         background: isSelected
-          ? 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(191,95,255,0.1))'
-          : isMovableCell
-          ? 'linear-gradient(135deg, rgba(191,95,255,0.15), rgba(100,0,180,0.1))'
-          : 'linear-gradient(135deg, rgba(100,0,180,0.3), rgba(50,0,100,0.3))',
+          ? 'rgba(255,215,0,0.12)'
+          : movable
+            ? 'rgba(191,95,255,0.1)'
+            : 'rgba(80,0,160,0.2)',
+        boxShadow: isSelected
+          ? '0 0 18px rgba(255,215,0,0.5), inset 0 0 8px rgba(255,215,0,0.1)'
+          : '0 0 8px rgba(191,95,255,0.3)',
       }}>
         <span style={{
-          fontSize: 'clamp(16px, 4vw, 24px)',
-          color: isSelected ? '#FFD700' : '#BF5FFF',
+          fontSize: 'clamp(18px, 5vw, 28px)',
+          color: isSelected ? '#FFD700' : '#E08FFF',
           fontWeight: 900, lineHeight: 1,
-          filter: isSelected ? 'drop-shadow(0 0 4px #FFD700)' : 'drop-shadow(0 0 4px #BF5FFF)',
+          filter: isSelected ? 'drop-shadow(0 0 5px #FFD700)' : 'drop-shadow(0 0 4px #BF5FFF)',
           userSelect: 'none',
         }}>
           {isForward ? '/' : '\\'}
         </span>
-        {isMovableCell && (
-          <div style={styles.movableBadge}>DRAG</div>
+        {movable && !isSelected && (
+          <div style={styles.movableMirrorTag}>TAP</div>
+        )}
+        {isSelected && (
+          <div style={{ ...styles.movableMirrorTag, color: '#FFD700' }}>SELECTED</div>
         )}
       </div>
     );
@@ -283,93 +228,90 @@ function renderCell(cell, row, col, isSelected, hitCrystal, levelDef) {
 
 const styles = {
   wrapper: {
-    position: 'relative',
-    width: '100%',
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+  },
+  instructionBanner: {
+    width: '100%', padding: '8px 14px',
+    background: 'rgba(255,215,0,0.08)',
+    border: '1px solid rgba(255,215,0,0.2)',
+    borderRadius: 10,
+    fontSize: 12, color: '#FFD700', textAlign: 'center',
+    animation: 'pulse-glow 2s ease-in-out infinite',
   },
   grid: {
-    display: 'grid',
-    width: '100%',
-    aspectRatio: '1',
-    gap: '3px',
-    padding: '3px',
-    background: 'rgba(0,0,0,0.3)',
-    borderRadius: 12,
+    display: 'grid', width: '100%', aspectRatio: '1',
+    gap: '4px', padding: '4px',
+    background: 'rgba(0,0,0,0.35)',
+    borderRadius: 14,
     border: '1px solid rgba(0,245,255,0.1)',
     position: 'relative',
   },
   beamSvg: {
-    position: 'absolute',
-    top: '3px', left: '3px',
-    width: 'calc(100% - 6px)',
-    height: 'calc(100% - 6px)',
-    pointerEvents: 'none',
-    zIndex: 10,
-    borderRadius: 10,
+    position: 'absolute', top: '4px', left: '4px',
+    width: 'calc(100% - 8px)', height: 'calc(100% - 8px)',
+    pointerEvents: 'none', zIndex: 10, borderRadius: 10,
   },
   cell: {
     background: 'rgba(255,255,255,0.03)',
-    borderRadius: 8,
+    borderRadius: 9,
+    border: '1px solid rgba(255,255,255,0.07)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    position: 'relative',
-    cursor: 'pointer',
-    transition: 'background 0.15s',
-    border: '1px solid rgba(255,255,255,0.06)',
-    minWidth: 0, minHeight: 0,
+    position: 'relative', minWidth: 0, minHeight: 0,
+    transition: 'background 0.12s, border-color 0.12s',
+    userSelect: 'none', WebkitUserSelect: 'none',
+    touchAction: 'none',
   },
   cellSelected: {
-    background: 'rgba(255,215,0,0.1)',
-    border: '1px solid rgba(255,215,0,0.4)',
+    background: 'rgba(255,215,0,0.08)',
+    border: '1px solid rgba(255,215,0,0.5)',
   },
   cellTarget: {
-    background: 'rgba(0,245,255,0.06)',
-    border: '1px dashed rgba(0,245,255,0.4)',
-    animation: 'pulse-glow 1.5s ease-in-out infinite',
+    background: 'rgba(0,245,255,0.05)',
+    border: '1.5px dashed rgba(0,245,255,0.45)',
   },
+
+  // Source
   source: {
-    width: '80%', height: '80%',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(0,245,255,0.3) 0%, rgba(0,100,100,0.2) 100%)',
-    border: '2px solid #00F5FF',
+    width: '76%', height: '76%', borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(0,245,255,0.25) 0%, rgba(0,80,80,0.2) 100%)',
+    border: '2.5px solid #00F5FF',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 0 12px rgba(0,245,255,0.5)',
+    boxShadow: '0 0 14px rgba(0,245,255,0.5)',
   },
-  sourceInner: {
-    fontSize: 'clamp(12px, 3vw, 18px)',
-    color: '#00F5FF',
-    fontWeight: 700,
-    filter: 'drop-shadow(0 0 4px #00F5FF)',
+  sourceArrow: {
+    fontSize: 'clamp(14px, 3.5vw, 22px)', color: '#00F5FF',
+    fontWeight: 700, filter: 'drop-shadow(0 0 4px #00F5FF)',
   },
+
+  // Crystal
   crystal: {
-    fontSize: 'clamp(16px, 5vw, 28px)',
-    lineHeight: 1,
-    userSelect: 'none',
+    fontSize: 'clamp(18px, 5.5vw, 30px)', lineHeight: 1, userSelect: 'none',
   },
+
+  // Blocker
   blocker: {
-    width: '80%', height: '80%',
-    borderRadius: 6,
-    border: '2px solid',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: '78%', height: '78%', borderRadius: 7,
+    border: '2.5px solid', display: 'flex', alignItems: 'center', justifyContent: 'center',
     flexDirection: 'column', gap: 2,
   },
+  movableTag: {
+    fontSize: 7, color: 'rgba(255,255,255,0.5)',
+    fontWeight: 700, letterSpacing: '0.05em',
+  },
+
+  // Mirror
   mirror: {
-    width: '80%', height: '80%',
-    borderRadius: 8,
+    width: '82%', height: '82%', borderRadius: 9,
     border: '2px solid',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     flexDirection: 'column',
-    position: 'relative',
     cursor: 'pointer',
-    transition: 'box-shadow 0.2s, border-color 0.2s',
+    transition: 'box-shadow 0.15s, border-color 0.15s, background 0.15s',
+    position: 'relative',
   },
-  movableBadge: {
-    position: 'absolute', bottom: 2,
+  movableMirrorTag: {
     fontSize: 7, color: 'rgba(191,95,255,0.6)',
-    letterSpacing: '0.05em',
-  },
-  hint: {
-    marginTop: 8,
-    fontSize: 11, color: 'rgba(0,245,255,0.6)',
-    letterSpacing: '0.05em', textAlign: 'center',
+    fontWeight: 700, letterSpacing: '0.06em', marginTop: 1,
+    position: 'absolute', bottom: 3,
   },
 };
