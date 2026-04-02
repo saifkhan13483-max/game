@@ -1,0 +1,466 @@
+// Level definitions for Shadow Shift
+// Directions: 0=right, 1=down, 2=left, 3=up
+// Mirror types: mirror-forward = /, mirror-backward = \
+// Reflection rules:
+//   / : right→up, down→left, left→down, up→right
+//   \ : right→down, down→right, left→up, up→left
+
+export const PACKS = [
+  { id: 'tutorial', name: 'Tutorial', levelRange: [1, 10], color: '#00F5FF' },
+  { id: 'beginner', name: 'Refraction', levelRange: [11, 20], color: '#39FF14' },
+  { id: 'intermediate', name: 'Prism', levelRange: [21, 25], color: '#FFD700' },
+  { id: 'advanced', name: 'Singularity', levelRange: [26, 30], color: '#FF2D78' },
+];
+
+export const LEVELS = [
+  // ─────────────────── PACK 1: TUTORIAL ───────────────────
+  {
+    id: 1, name: 'First Light', pack: 'Tutorial',
+    gridSize: 5,
+    source: { row: 2, col: 0, direction: 0 },
+    crystal: { row: 2, col: 4 },
+    fixed: [],
+    movable: [],
+    moveLimit: null, optimalMoves: 0, perfectMoves: 0,
+    hint: 'The beam travels in a straight line. Watch it hit the crystal!',
+    tutorial: 'The laser beam travels in a straight line. Guide it to the glowing crystal.',
+  },
+  {
+    id: 2, name: 'One Bounce', pack: 'Tutorial',
+    gridSize: 5,
+    source: { row: 0, col: 2, direction: 1 },
+    crystal: { row: 2, col: 4 },
+    fixed: [],
+    movable: [{ id: 'm1', type: 'movable-mirror-backward', row: 4, col: 0 }],
+    moveLimit: null, optimalMoves: 1, perfectMoves: 1,
+    hint: 'Place the \\ mirror at row 2, column 2 to redirect the beam right.',
+    tutorial: 'Drag the mirror to redirect the beam. A \\ mirror turns a downward beam to the right.',
+  },
+  {
+    id: 3, name: 'Turn Right', pack: 'Tutorial',
+    gridSize: 5,
+    source: { row: 2, col: 0, direction: 0 },
+    crystal: { row: 0, col: 2 },
+    fixed: [],
+    movable: [{ id: 'm1', type: 'movable-mirror-forward', row: 4, col: 4 }],
+    moveLimit: null, optimalMoves: 1, perfectMoves: 1,
+    hint: 'Place the / mirror at row 2, column 2 to redirect the beam upward.',
+    tutorial: 'A / mirror turns a rightward beam upward. Drag it into the beam\'s path.',
+  },
+  {
+    id: 4, name: 'Two Turns', pack: 'Tutorial',
+    gridSize: 5,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 4, col: 4 },
+    fixed: [],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 2, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 2, col: 1 },
+    ],
+    moveLimit: null, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place one \\ at (0,3) to redirect down, and another \\ at (4,3) to redirect right.',
+    tutorial: 'Two mirrors means two bounces. Plan your path before placing.',
+  },
+  {
+    id: 5, name: 'Up and Over', pack: 'Tutorial',
+    gridSize: 5,
+    source: { row: 4, col: 2, direction: 3 },
+    crystal: { row: 0, col: 0 },
+    fixed: [],
+    movable: [{ id: 'm1', type: 'movable-mirror-backward', row: 4, col: 4 }],
+    moveLimit: null, optimalMoves: 1, perfectMoves: 1,
+    hint: 'Place \\ at row 0, col 2 to redirect the upward beam leftward.',
+    tutorial: 'The beam travels upward. A \\ mirror will redirect it left to reach the crystal.',
+  },
+  {
+    id: 6, name: 'The Wall', pack: 'Tutorial',
+    gridSize: 6,
+    source: { row: 3, col: 0, direction: 0 },
+    crystal: { row: 0, col: 3 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 3, col: 3 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 5, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 5, col: 1 },
+    ],
+    moveLimit: null, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place / at (3,2) to go up, then / at (0,2) to go right to the crystal.',
+    tutorial: 'Blockers absorb the beam. Use mirrors to route around them.',
+  },
+  {
+    id: 7, name: 'Diagonal', pack: 'Tutorial',
+    gridSize: 6,
+    source: { row: 0, col: 5, direction: 2 },
+    crystal: { row: 5, col: 0 },
+    fixed: [],
+    movable: [{ id: 'm1', type: 'movable-mirror-forward', row: 3, col: 3 }],
+    moveLimit: null, optimalMoves: 1, perfectMoves: 1,
+    hint: 'Place / at (0,0) to redirect the leftward beam downward.',
+    tutorial: 'One mirror can redirect a long beam all the way to the crystal.',
+  },
+  {
+    id: 8, name: 'Staircase', pack: 'Tutorial',
+    gridSize: 6,
+    source: { row: 0, col: 0, direction: 1 },
+    crystal: { row: 5, col: 5 },
+    fixed: [],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 5, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 5, col: 1 },
+    ],
+    moveLimit: null, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place \\ at (3,0) and \\ at (3,5) to staircase the beam to the corner.',
+    tutorial: 'Plan the full path from source to crystal before moving anything.',
+  },
+  {
+    id: 9, name: 'Detour', pack: 'Tutorial',
+    gridSize: 6,
+    source: { row: 3, col: 0, direction: 0 },
+    crystal: { row: 0, col: 5 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 3, col: 5 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 5, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 5, col: 1 },
+    ],
+    moveLimit: null, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place / at (3,4) to go up, then / at (0,4) to go right to the crystal.',
+    tutorial: 'The blocker is blocking the direct path. You\'ll need to route around it.',
+  },
+  {
+    id: 10, name: 'The Cross', pack: 'Tutorial',
+    gridSize: 6,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 5, col: 5 },
+    fixed: [],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 3, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 3, col: 1 },
+    ],
+    moveLimit: null, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place \\ at (0,3) then \\ at (5,3) to reach the bottom-right crystal.',
+    tutorial: 'You\'ve mastered the basics! Now use what you know to solve harder puzzles.',
+  },
+
+  // ─────────────────── PACK 2: REFRACTION ───────────────────
+  {
+    id: 11, name: 'Bypass', pack: 'Refraction',
+    gridSize: 6,
+    source: { row: 5, col: 0, direction: 3 },
+    crystal: { row: 0, col: 5 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 0, col: 0 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 4, col: 5 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 3, col: 5 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place / at (1,0) to redirect right, then / at (1,5) to redirect up.',
+  },
+  {
+    id: 12, name: 'Side Road', pack: 'Refraction',
+    gridSize: 6,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 3, col: 5 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 0, col: 3 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 5, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 5, col: 1 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place \\ at (0,2) to go down, then \\ at (3,2) to go right to the crystal.',
+  },
+  {
+    id: 13, name: 'Zigzag', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 6, col: 6 },
+    fixed: [],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 6, col: 2 },
+    ],
+    moveLimit: 5, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Place \\ at (0,3), \\ at (3,3), and \\ at (3,6) to staircase down to the crystal.',
+  },
+  {
+    id: 14, name: 'Long Way', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 6, col: 0, direction: 3 },
+    crystal: { row: 0, col: 6 },
+    fixed: [],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 0, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 0, col: 1 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place / at (3,0) to go right, then / at (3,6) to go up to the crystal.',
+  },
+  {
+    id: 15, name: 'Block Route', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 1 },
+    crystal: { row: 6, col: 6 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 4, col: 0 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 6, col: 1 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place \\ at (3,0) to go right before the blocker, then \\ at (3,6) to go down.',
+  },
+  {
+    id: 16, name: 'Sidestep', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 3, col: 0, direction: 0 },
+    crystal: { row: 0, col: 6 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 3, col: 4 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 6, col: 1 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place / at (3,3) to go up, then / at (0,3) to go right to the crystal.',
+  },
+  {
+    id: 17, name: 'Mirror Maze', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 6, col: 6, direction: 2 },
+    crystal: { row: 0, col: 0 },
+    fixed: [],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 0, col: 6 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 6, col: 0 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place \\ at (6,3) to go up, then \\ at (0,3) to go left to the crystal.',
+  },
+  {
+    id: 18, name: 'Three Walls', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 0, col: 3, direction: 1 },
+    crystal: { row: 6, col: 3 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 3, col: 3 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 5, col: 1 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 5, col: 2 },
+      { id: 'm3', type: 'movable-mirror-forward', row: 5, col: 3 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Go left around the blocker: / at (2,3), / at (2,0), then \\ at (6,0).',
+  },
+  {
+    id: 19, name: 'Gatekeeper', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 3, col: 0, direction: 1 },
+    crystal: { row: 6, col: 3 },
+    fixed: [],
+    movable: [
+      { id: 'mb1', type: 'movable-blocker', row: 4, col: 0 },
+      { id: 'm1', type: 'movable-mirror-backward', row: 6, col: 0 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Move the blocker out of the way, then place \\ at (6,0) to redirect right.',
+  },
+  {
+    id: 20, name: 'Cascade', pack: 'Refraction',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 1 },
+    crystal: { row: 6, col: 6 },
+    fixed: [{ id: 'b1', type: 'blocker', row: 4, col: 0 }],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 6, col: 2 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Place \\ at (3,0) to go right, \\ at (3,5) to go down, \\ at (6,5) to go right.',
+  },
+
+  // ─────────────────── PACK 3: PRISM ───────────────────
+  {
+    id: 21, name: 'Labyrinth', pack: 'Prism',
+    gridSize: 7,
+    source: { row: 0, col: 6, direction: 1 },
+    crystal: { row: 6, col: 0 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 3, col: 6 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 5, col: 5 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 5, col: 4 },
+    ],
+    moveLimit: 4, optimalMoves: 2, perfectMoves: 2,
+    hint: 'Place / at (2,6) to go left, then / at (2,0) to go down to the crystal.',
+  },
+  {
+    id: 22, name: 'The Gauntlet', pack: 'Prism',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 6, col: 6 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 0, col: 4 },
+      { id: 'b2', type: 'blocker', row: 6, col: 2 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 3, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 3, col: 1 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 3, col: 2 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Route: right → \\ at (0,3) → down → \\ at (4,3) → right → \\ at (4,6) → down.',
+  },
+  {
+    id: 23, name: 'Pinball', pack: 'Prism',
+    gridSize: 7,
+    source: { row: 3, col: 0, direction: 0 },
+    crystal: { row: 0, col: 6 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 3, col: 4 },
+      { id: 'b2', type: 'blocker', row: 0, col: 3 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 6, col: 2 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Route up then across, avoiding both blockers.',
+  },
+  {
+    id: 24, name: 'Double Back', pack: 'Prism',
+    gridSize: 7,
+    source: { row: 6, col: 0, direction: 0 },
+    crystal: { row: 0, col: 0 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 6, col: 4 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 3, col: 5 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 3, col: 6 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 4, col: 5 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Go right to col 3, bounce up, cross to col 0, then go up to crystal.',
+  },
+  {
+    id: 25, name: 'Spiral', pack: 'Prism',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 3, col: 3 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 0, col: 5 },
+      { id: 'b2', type: 'blocker', row: 5, col: 0 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-forward', row: 6, col: 2 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Place \\ at (0,4) to go down, \\ at (4,4) to go right... find the path to center.',
+  },
+
+  // ─────────────────── PACK 4: SINGULARITY ───────────────────
+  {
+    id: 26, name: 'The Chamber', pack: 'Singularity',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 0 },
+    crystal: { row: 6, col: 0 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 0, col: 4 },
+      { id: 'b2', type: 'blocker', row: 4, col: 0 },
+      { id: 'b3', type: 'blocker', row: 6, col: 4 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-backward', row: 3, col: 5 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 3, col: 6 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 4, col: 6 },
+    ],
+    moveLimit: 6, optimalMoves: 3, perfectMoves: 3,
+    hint: 'Navigate through the walls using a series of bounces.',
+  },
+  {
+    id: 27, name: 'Crossfire', pack: 'Singularity',
+    gridSize: 7,
+    source: { row: 0, col: 3, direction: 1 },
+    crystal: { row: 6, col: 3 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 3, col: 3 },
+      { id: 'b2', type: 'blocker', row: 1, col: 1 },
+      { id: 'b3', type: 'blocker', row: 5, col: 5 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 6, col: 2 },
+      { id: 'm4', type: 'movable-mirror-backward', row: 5, col: 0 },
+    ],
+    moveLimit: 7, optimalMoves: 4, perfectMoves: 4,
+    hint: 'Route around both central and side blockers.',
+  },
+  {
+    id: 28, name: 'The Vault', pack: 'Singularity',
+    gridSize: 7,
+    source: { row: 6, col: 6, direction: 2 },
+    crystal: { row: 0, col: 6 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 6, col: 3 },
+      { id: 'b2', type: 'blocker', row: 3, col: 0 },
+      { id: 'b3', type: 'blocker', row: 0, col: 3 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 3, col: 5 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 4, col: 5 },
+      { id: 'm3', type: 'movable-mirror-forward', row: 5, col: 5 },
+      { id: 'm4', type: 'movable-mirror-backward', row: 3, col: 4 },
+    ],
+    moveLimit: 7, optimalMoves: 4, perfectMoves: 4,
+    hint: 'Work backwards from the crystal to plan your path.',
+  },
+  {
+    id: 29, name: 'Labyrinth II', pack: 'Singularity',
+    gridSize: 7,
+    source: { row: 0, col: 0, direction: 1 },
+    crystal: { row: 0, col: 6 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 2, col: 0 },
+      { id: 'b2', type: 'blocker', row: 4, col: 6 },
+      { id: 'b3', type: 'blocker', row: 6, col: 3 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-forward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-backward', row: 6, col: 2 },
+      { id: 'm4', type: 'movable-mirror-forward', row: 5, col: 0 },
+    ],
+    moveLimit: 7, optimalMoves: 4, perfectMoves: 4,
+    hint: 'Three blockers create a complex maze. Plan 4+ moves ahead.',
+  },
+  {
+    id: 30, name: 'Singularity', pack: 'Singularity',
+    gridSize: 7,
+    source: { row: 3, col: 0, direction: 0 },
+    crystal: { row: 3, col: 6 },
+    fixed: [
+      { id: 'b1', type: 'blocker', row: 3, col: 3 },
+      { id: 'b2', type: 'blocker', row: 0, col: 3 },
+      { id: 'b3', type: 'blocker', row: 6, col: 3 },
+      { id: 'b4', type: 'blocker', row: 1, col: 6 },
+    ],
+    movable: [
+      { id: 'm1', type: 'movable-mirror-forward', row: 6, col: 0 },
+      { id: 'm2', type: 'movable-mirror-backward', row: 6, col: 1 },
+      { id: 'm3', type: 'movable-mirror-forward', row: 5, col: 0 },
+      { id: 'm4', type: 'movable-mirror-backward', row: 5, col: 1 },
+    ],
+    moveLimit: 8, optimalMoves: 4, perfectMoves: 4,
+    hint: 'The direct path is blocked. You must navigate over or under the central blocker.',
+  },
+];
+
+export function getLevelById(id) {
+  return LEVELS.find(l => l.id === id);
+}
+
+export function getPackForLevel(levelId) {
+  return PACKS.find(p => levelId >= p.levelRange[0] && levelId <= p.levelRange[1]);
+}
