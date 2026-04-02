@@ -1,0 +1,229 @@
+🎮 Product Requirements Document (PRD)
+Field	Details
+Product Name	Shadow Shift
+Document Version	1.0
+Status	Draft — MVP Development
+Platform	Mobile-First (Android / iOS) + Progressive Web App (PWA)
+Genre	Puzzle / Logic / Casual
+Document Owner	[Product Manager Name]
+Last Updated	April 2, 2026
+Stakeholders	Product, Engineering, Design, QA, Marketing
+1. Executive Summary
+Shadow Shift is a premium mobile-first puzzle game in which players manipulate mirrors, prisms, blockers, and interactive environmental objects to guide a beam of light toward a target crystal. Built around a dark neon aesthetic, the game is designed to feel both visually stunning and intellectually rewarding — blending the satisfying "aha" moments of classic logic puzzles with the tactile delight of a modern mobile experience.
+
+The core product philosophy centers on three pillars: accessibility (easy to pick up in seconds), depth (progressively complex mechanics that reward mastery), and monetization integrity (ads and hints that feel helpful, not exploitative). The MVP targets a launch-ready build featuring 30 polished levels, a complete hint and ad monetization system, and a fully realized neon visual identity.
+
+2. Problem Statement & Opportunity
+The mobile puzzle game market generates over $2 billion annually, with titles like Candy Crush and Homescapes proving that deeply satisfying casual loops can achieve extraordinary retention and revenue. However, the laser/mirror puzzle sub-genre remains significantly underserved in terms of visual polish and mechanical depth. Existing entries are either visually dated, mechanically shallow, or heavily paywalled in ways that destroy player goodwill.
+
+Shadow Shift positions itself in the gap between casual accessibility and premium visual quality — a neon-lit, mechanically elegant puzzle experience that feels modern enough to attract social sharing, deep enough to drive long-term retention, and fair enough in its monetization to build a loyal user base.
+
+3. Product Goals & Success Metrics
+3.1 Primary Goals
+
+The primary goals for the MVP and initial growth phase are to ship a cohesive, polished puzzle experience with 100+ handcrafted levels (30 at MVP), establish strong Day 1 and Day 7 retention through progressive difficulty and daily engagement features, build a monetization layer through rewarded ads and hints that respects player experience, and create a distinctive visual identity strong enough to drive organic social sharing.
+
+3.2 Key Performance Indicators (KPIs)
+
+Metric	MVP Target	90-Day Target
+Day 1 Retention	> 35%	> 40%
+Day 7 Retention	> 15%	> 20%
+Average Session Duration	> 8 minutes	> 12 minutes
+Levels 1–10 Completion Rate	> 70%	> 75%
+Hint Ad Conversion Rate	> 15%	> 20%
+App Store Rating	—	≥ 4.3 stars
+Monthly Active Users (MAU)	—	50,000
+4. Target Audience
+4.1 Primary Audience
+
+The core audience is mobile casual gamers between the ages of 13 and 35 who enjoy logic and brain-training games. These players gravitate toward games with short, satisfying sessions that can be played in commute windows or idle moments. They appreciate visual polish and are likely to share aesthetically striking content on TikTok and Instagram. They are familiar with puzzle mechanics but do not self-identify as "hardcore gamers."
+
+4.2 Secondary Audience
+
+The secondary audience includes fans of existing laser/mirror puzzle games (such as Lazors and similar titles) who are seeking a more visually modern alternative, as well as casual gamers who discover the product through short-form video content showcasing the neon beam animations.
+
+4.3 User Personas
+
+Persona A — "The Commuter" (Age 24, urban professional): Plays in 5–15 minute windows. Values fast level entry, quick saves, and a sense of progression. Will watch a rewarded ad if it unblocks them on a frustrating level. Likely to share a satisfying level-complete animation on social media.
+
+Persona B — "The Completionist" (Age 17, high school student): Plays for longer sessions. Motivated by 3-star ratings, achievements, and leaderboards. Will replay levels to achieve a perfect solution. Primary candidate for the premium no-ads purchase.
+
+5. Core Gameplay Loop
+The fundamental gameplay loop is intentionally tight and frictionless. A player opens a level and is immediately presented with the puzzle layout — a grid containing a fixed laser source, movable objects, and a target crystal. They drag and rotate objects, observe the laser beam reacting in real time, and attempt to route the beam to the crystal. Upon success, the level completion screen displays their star rating, coins earned, and a prompt to proceed. The loop then resets at the next level with incrementally greater complexity.
+
+CopyOpen Level → Analyze Layout → Drag / Rotate Objects → 
+Observe Beam → Hit Crystal → Level Complete → 
+Stars & Coins → Unlock Next Level → [Repeat]
+This loop is designed to produce a consistent "one more level" impulse by ensuring each level is short enough to feel completable but complex enough to feel earned.
+
+6. Core Mechanics
+6.1 Laser Source System
+
+The laser beam originates from a fixed, immovable source tile at a defined angle. The beam travels in a straight line across the grid until it interacts with an object. Interactions are: reflection off a mirror, color splitting through a prism, teleportation through a portal, absorption by a blocker, or arrival at the target crystal. The beam renders with a glowing neon effect and reacts in real time as objects are moved or rotated — this live feedback is central to the satisfying feel of the game.
+
+6.2 Mirror Reflection
+
+Mirrors are the primary movable object in the MVP. They can be freely dragged to empty grid cells and rotated in 45° increments, supporting the following orientations: / (45°), \ (135°), — (horizontal, acts as a pass-through splitter in Phase 2), and | (vertical). The reflection angle follows standard optical reflection rules — angle of incidence equals angle of reflection. Mirrors have a distinct neon-purple visual identity with a satisfying click animation on rotation.
+
+6.3 Target Crystal
+
+The crystal is the level objective. It is a fixed object that cannot be moved. A level is marked as complete only when the correct laser beam (matching color in Phase 2, any color in Phase 1) strikes the crystal and maintains contact for a minimum of 0.75 seconds — a deliberate design choice to prevent accidental completions and to add a brief moment of visual celebration before the completion screen triggers.
+
+6.4 Blockers
+
+Blockers are opaque tiles that fully absorb the laser beam. Some blockers are fixed (part of the level design) and some are movable by the player. They serve as negative-space tools that force players to think about routing constraints, not just reflection angles.
+
+6.5 Move Limit System
+
+Each level defines either an unlimited move count (tutorial and early levels) or a fixed move budget (intermediate and advanced levels). The move counter is displayed prominently on the level UI. Exceeding the move budget does not end the level — instead, the player is locked out of earning 3 stars and may only earn 1 star. This preserves completion accessibility while rewarding optimal play. A "Complete in N moves" challenge per level serves as the primary replayability driver.
+
+6.6 Star Rating System
+
+Every level awards between 1 and 3 stars based on performance criteria defined per level. The universal baseline is 1 star for any completion. 2 stars require completing the level at or within the defined optimal move count. 3 stars require achieving the perfect solution as defined by the level designer — typically the minimum possible moves. Stars are persistent, contribute to unlocking level packs, and feed into the achievement system.
+
+Rating	Condition
+⭐ 1 Star	Level completed (any number of moves)
+⭐⭐ 2 Stars	Completed within the optimal move count
+⭐⭐⭐ 3 Stars	Perfect solution — minimum possible moves
+7. Advanced Mechanics & Phase Rollout
+The game's mechanics are designed to be introduced incrementally, preventing overwhelming new players while providing sustained depth for returning players. Below is the phased mechanical roadmap.
+
+Phase 1 — MVP (Levels 1–30): Single-color laser, movable mirrors, fixed and movable blockers, single crystal target, limited move system, and star rating.
+
+Phase 2 — Post-Launch Update (Levels 31–100): Multi-color laser beams (red, green, blue), color filters that only pass matching wavelengths, beam splitters that divide a single beam into two, teleport portals (paired entry/exit tiles), and environmental switches that toggle blockers or open paths.
+
+Phase 3 — Advanced Content (Levels 101+): Rotating obstacles that move on a timer, pressure plate mechanics that activate when the beam passes over them, gravity-based objects that fall or slide without player input, and timed laser challenges with countdown mechanics.
+
+8. Level Design & Difficulty Progression
+Levels 1–10 — Tutorial & Onboarding: These levels are explicitly instructional. Each level introduces exactly one mechanic (dragging, rotating, reflection, blockers) with no move limit and generous grid space. Completion should take under 60 seconds per level for a first-time player. Animated tooltips and contextual guidance appear on first interaction.
+
+Levels 11–30 — Beginner to Intermediate: Move limits are introduced. Blockers become movable. Players begin encountering multi-mirror setups that require planning 2–3 bounces ahead. The tutorial UI disappears entirely. Target completion time per level is 1–4 minutes.
+
+Levels 31–60 — Intermediate to Advanced: Phase 2 mechanics are introduced one at a time. Split beams require the player to satisfy multiple crystal targets simultaneously or route beams around interference paths. Portal pairs introduce non-linear routing logic.
+
+Levels 61–100 — Expert: Multi-step puzzles requiring planning 5+ moves ahead. Color-matching constraints tighten routing options significantly. Move budgets are strict. These levels are designed for players who have mastered all previous mechanics and are the primary content reward for paying premium users.
+
+9. User Stories
+The following user stories define the must-have behaviors for the MVP.
+
+As a new player, I want to understand how to play the game within the first 2 minutes without reading a manual, so that I can begin enjoying the puzzle experience immediately.
+
+As a casual player, I want each level to be completable in under 5 minutes, so that I can enjoy the game during short breaks.
+
+As a completionist player, I want to replay any level to improve my star rating, so that I have a meaningful reason to return to earlier content.
+
+As a stuck player, I want to watch an optional rewarded ad to receive a hint, so that I can progress without being forced to pay.
+
+As a premium user, I want to remove all ads with a single purchase, so that I can enjoy an uninterrupted experience.
+
+As a daily player, I want a new Daily Challenge every 24 hours, so that I have a fresh reason to open the app each day.
+
+10. UI / UX Requirements
+10.1 Home Screen
+
+The home screen must load in under 2 seconds and display the following elements: a Play button that resumes from the last incomplete level, a Daily Challenge button with a visible countdown timer to the next reset, a Level Select button, a Settings panel (audio, haptics, notifications), and a Remove Ads CTA styled as a value proposition ("Go Premium") rather than a hard upsell. The overall aesthetic should immediately communicate the neon/dark theme.
+
+10.2 Level Screen
+
+The active level UI must display the level number and pack name in the top-left, the remaining move count (if applicable) prominently in the top-center, and a top-right control cluster containing Pause, Hint, and Restart buttons. The grid occupies the primary screen real estate with no UI overlap. The laser beam renders above all grid objects in the layer hierarchy. Touch targets for draggable objects must be a minimum of 48×48dp to comply with platform accessibility guidelines.
+
+10.3 Completion Screen
+
+On level completion, the screen must animate in the earned star rating (stars should animate one by one with sound), display the moves used vs. the optimal move count, show coins earned, and present two clear CTAs: Next Level (primary, large) and Replay (secondary, smaller). Social sharing of the completion animation should be a one-tap action.
+
+10.4 Hint System UX
+
+When a player taps Hint, the system checks remaining hint currency. If zero, a rewarded ad prompt appears with the copy: "Watch a short video to unlock a hint." The hint itself highlights the next recommended object to move without revealing the full solution, preserving player agency.
+
+11. Visual Design
+The visual identity of Shadow Shift is defined by a dark neon futuristic aesthetic. The background palette uses deep black and dark navy tones (#0A0A1A to #0D1B3E) to maximize contrast and make the laser beams pop visually. The laser beam renders in glowing cyan (#00F5FF) with a bloom/glow shader effect. Mirrors use neon purple (#BF5FFF) with a metallic sheen. The target crystal uses a multi-color iridescent glow that pulses gently when idle and flares dramatically on activation.
+
+All animations must prioritize "game feel" — every interaction should have a micro-animation response. Mirror rotation has a snap-and-settle motion. The laser beam travels from source to target with a propagation animation (not instant) on level load to help players read the puzzle. The completion animation should be the most visually spectacular moment in the entire level flow, reinforcing the dopamine reward cycle.
+
+Typography uses a modern geometric sans-serif for UI elements and a stylized display font for level names and titles that matches the sci-fi aesthetic.
+
+12. Audio Requirements
+Audio is a first-class citizen in Shadow Shift's experience design. All sound effects must be implemented before MVP launch — placeholder audio is not acceptable in the shipped product. Required audio assets include a continuous, low-level laser hum that plays whenever the beam is active, a satisfying mirror rotate click with subtle haptic feedback on mobile, a crystal activation chime that plays as the beam reaches the target (with a build-up for sustained contact), a level complete fanfare that scales with star rating (1-star is subtle, 3-star is celebratory), a soft ambient background track that loops seamlessly and does not become fatiguing over 20+ minutes of play, and distinct error sounds when a move is rejected (e.g., placing an object on an occupied cell).
+
+Audio settings must include independent volume sliders for music and SFX, and a global mute toggle accessible from the level screen without opening the full settings menu.
+
+13. Monetization Strategy
+The monetization model is designed to be player-first — generating revenue without creating artificial frustration barriers that damage retention or reviews.
+
+Rewarded Ads: Players can voluntarily watch a rewarded video ad (maximum 30 seconds) in exchange for one hint, one extra move beyond the move limit, or a level skip. The ad prompt is never shown unsolicited during gameplay. The hint button is the natural trigger point.
+
+Interstitial Ads: A non-skippable interstitial plays between every 3–5 completed levels (configurable server-side). Interstitials are never shown immediately after a failed attempt, as this is the highest-friction moment in the player experience and is the leading cause of negative app store reviews in the category.
+
+Premium Upgrade (One-Time IAP): A single purchase (suggested price: $2.99–$4.99) permanently removes all ads, unlocks an exclusive "Holographic" neon skin pack, and grants a bonus starting supply of 10 hints. This should be positioned as a "support the game" offering rather than a capability gate. Premium users should never be reminded of the IAP again after purchase.
+
+Future Monetization (Post-MVP): Cosmetic hint packs and additional premium skin bundles. No gameplay-affecting paid items will be introduced — this is a hard design constraint.
+
+14. Retention & Engagement Features
+Daily Challenge: A single hand-crafted puzzle resets every 24 hours. Completion earns a bonus coin reward and contributes to the daily streak counter. The Daily Challenge is accessible from the home screen without requiring the player to have progressed to that level in the main campaign.
+
+Streak Rewards: Players maintaining a consecutive daily play streak unlock escalating coin bonuses at 3, 7, 14, and 30 days. A "streak shield" (one free missed day per week) prevents streak loss from a single missed session, reducing frustration-driven churn.
+
+Achievement System: 30+ achievements covering a range of behaviors — completing a level with 3 stars, solving a level without using any hints, maintaining a 7-day streak, and so on. Achievements are visible in-profile and function as long-term engagement anchors.
+
+Daily Challenge Leaderboard: Players are ranked on the global Daily Challenge by move count and solve time. Top 100 players are highlighted. This drives competitive re-engagement and social discussion.
+
+15. Accessibility Requirements
+Shadow Shift must meet the following baseline accessibility standards at launch. Color-blind mode is mandatory — all game-critical information conveyed through color (beam color in Phase 2) must have a secondary differentiator (beam pattern, icon, label). Touch targets must meet the 48×48dp minimum throughout all screens. Font sizes must be a minimum of 14sp for body copy and 18sp for level-critical information. The game must function fully with device audio disabled (all necessary feedback has a visual counterpart). A "reduced motion" mode must disable particle effects and bloom shaders for players with motion sensitivity.
+
+16. Analytics & Instrumentation
+The following events must be tracked from day one to support data-driven iteration. Implementing analytics after launch results in a blind period during peak early-user data collection.
+
+Level-level events to track include: level start, level complete (with move count, star rating, and time), level fail/restart, hint requested, hint ad watched, hint ad skipped, and level skip used. Session-level events include: session start, session end (with duration), daily challenge attempted, and daily challenge completed. Monetization events include: IAP prompt displayed, IAP purchased, rewarded ad triggered, rewarded ad completed, and interstitial ad displayed.
+
+Recommended analytics stack: Firebase Analytics (free, deep Unity integration) with Amplitude for funnel analysis post-MVP.
+
+17. Technical Requirements
+17.1 Recommended Tech Stack
+
+For the mobile application, Unity (LTS version) is the strongly recommended engine due to its robust mobile build pipeline, excellent asset store resources for particle/shader effects required by the neon visual identity, and broad developer hiring pool. The laser simulation logic should be implemented as a performant raycasting system. For the web version, Phaser 3 with a React shell is recommended, with Unity WebGL export as an alternative to maintain a single codebase.
+
+17.2 Performance Targets
+
+The game must maintain a minimum of 60 FPS on devices equivalent to iPhone 12 / Samsung Galaxy S20 and above, and a minimum of 30 FPS on lower-end devices (iPhone 8 / Android devices with 3GB RAM). Level load time must not exceed 2 seconds on a 4G connection. The initial app download size must not exceed 150MB (with additional content streamed or downloaded as needed).
+
+17.3 Platform Requirements
+
+The app must target iOS 14+ and Android 8.0+ (API level 26+). It must support both portrait and landscape orientations, with portrait as the primary design orientation. Cloud save via Google Play Games Services and Apple Game Center should be integrated at MVP to prevent progress loss on device reinstall — a leading cause of early churn.
+
+18. MVP Scope & Deliverables
+The MVP must ship with the following non-negotiable features. Any item below that is descoped must be formally approved by the Product Owner and logged as a known gap.
+
+The MVP deliverables are: 30 fully playtested and polished levels, a complete Phase 1 mechanic set (mirrors, blockers, single laser, crystal target, star rating, move limits), a functional hint system with rewarded ad integration, interstitial ad integration, a premium remove-ads IAP, the Home Screen, Level Select, Level Screen, and Completion Screen as specified, a complete sound effect library, background music, a Daily Challenge system with at least 14 pre-loaded daily puzzles, and submission-ready App Store and Google Play Store assets (screenshots, icon, description copy).
+
+The following are explicitly out of scope for MVP: Phase 2 and Phase 3 mechanics, leaderboards, cloud save (deferred to Week 2 patch), cosmetic skin system, multiplayer, and social sharing integration.
+
+19. Risks & Mitigations
+Risk	Likelihood	Impact	Mitigation
+Level difficulty curve is mis-calibrated, causing early drop-off	High	High	Conduct playtesting sessions with 20+ users across all 30 MVP levels before submission
+Rewarded ad eCPM underperforms revenue projections	Medium	Medium	Integrate multiple ad networks (AdMob + IronSource) with mediation from day one
+App Store rejection due to interstitial ad timing	Low	High	Follow Apple/Google ad guidelines strictly; never show interstitial on first session
+Performance issues on low-end Android devices	Medium	Medium	Profile on minimum-spec device weekly during development, not just before launch
+Player frustration from hint system leading to negative reviews	Medium	High	Ensure hint UX is frictionless and ads never interrupt active gameplay
+20. Future Roadmap
+Q3 2026 — Phase 2 Update: Expand to 100 total levels. Introduce color beam mechanics (red, green, blue), beam splitters, and portal pairs. Launch cosmetic skin system (neon themes). Implement cloud save. Deploy Daily Challenge leaderboard.
+
+Q4 2026 — Phase 3 Update: Introduce dynamic obstacle mechanics (rotating blockers, pressure plates, timed lasers). Launch Puzzle Race — a synchronous or asynchronous multiplayer mode where two players compete to solve the same puzzle faster. Introduce a Level Editor beta for community-created content.
+
+2027 — Platform Expansion: Evaluate Apple Arcade submission for a premium ad-free version. Explore PC/Steam port leveraging the Unity codebase. Launch creator partnership program for TikTok/YouTube puzzle content.
+
+21. Open Questions & Decisions Pending
+The following items require stakeholder resolution before engineering kickoff. First, should cloud save be included in MVP given its churn-prevention value, despite the added scope? Second, what is the exact pricing for the premium IAP — $2.99, $3.99, or $4.99 — and has competitive pricing been benchmarked? Third, who owns Daily Challenge level design — the core design team or a rotating external puzzle designer? Fourth, what is the target app store launch date, and does it allow for a sufficient soft-launch period in a limited market before global rollout?
+
+Document Status: Draft v1.0 | Prepared for MVP Development Kickoff | Shadow Shift © 2026
+
+Here is a summary of every major improvement made and why each one matters:
+
+Structure & Professionalism: A metadata table was added at the top (version, status, owner, stakeholders) because real PRDs need to be traceable documents, not just design notes. Emoji headers were preserved where appropriate but the overall tone was elevated from a bullet-point outline to a full stakeholder-ready document.
+
+Missing Sections Added: Five entirely new sections were introduced that are critical for any shipped product — a Problem Statement & Opportunity (grounding the PRD in market context), User Stories (bridging requirements to engineering tasks), Accessibility Requirements (a legal and UX obligation), Analytics & Instrumentation (essential for post-launch iteration), and a Risks & Mitigations table (standard in professional product development).
+
+Depth of Existing Sections: Every original section was expanded with rationale, not just description. For example, the Monetization section now explains why interstitials should not appear after failures — this protects app store ratings, which is information the development team needs to understand the constraint.
+
+Precision for Engineering: Vague phrases like "visually satisfying" were replaced with specific measurable targets (60 FPS, 2-second load time, 48dp touch targets, 0.75-second crystal contact time). Engineers build to specifications, not adjectives.
+
+Open Questions Section: A professional PRD always surfaces unresolved decisions explicitly rather than leaving them implicit, so a dedicated section was added to flag pricing, scope, and launch timeline questions that require stakeholder sign-off before work begins.
