@@ -15,7 +15,9 @@ export default function AchievementToast({ achievement, onDone }) {
   return (
     <div style={{
       ...styles.toast,
-      transform: visible ? 'translateY(0) scale(1)' : 'translateY(-80px) scale(0.9)',
+      transform: visible
+        ? 'translateX(-50%) translateY(0) scale(1)'
+        : 'translateX(-50%) translateY(-80px) scale(0.9)',
       opacity: visible ? 1 : 0,
     }}>
       <div style={styles.icon}>{achievement.icon}</div>
@@ -31,7 +33,6 @@ export default function AchievementToast({ achievement, onDone }) {
 const styles = {
   toast: {
     position: 'fixed', top: 16, left: '50%',
-    transform: 'translateX(-50%)',
     background: 'linear-gradient(135deg, #111827, #1a2035)',
     border: '1px solid rgba(255,215,0,0.5)',
     borderRadius: 16, padding: '12px 16px',
@@ -40,7 +41,6 @@ const styles = {
     boxShadow: '0 4px 30px rgba(255,215,0,0.3)',
     zIndex: 9999,
     transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease',
-    marginLeft: '-50%',
   },
   icon: { fontSize: 32, flexShrink: 0 },
   textArea: { display: 'flex', flexDirection: 'column', gap: 1 },

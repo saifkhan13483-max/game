@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { LEVELS } from '../data/levels.js';
-import { getTodaysChallenge } from '../data/dailyChallenges.js';
+import { getTodaysChallenge, DAILY_CHALLENGES } from '../data/dailyChallenges.js';
 import { checkNewAchievements } from '../data/achievements.js';
 import { playAchievementUnlock, playButtonTap, startAmbientMusic, stopAmbientMusic, setMusicVolume, setSfxVolume } from '../audio/audioEngine.js';
 import AchievementToast from '../components/AchievementToast.jsx';
@@ -127,8 +127,18 @@ export function GameProvider({ children }) {
     setScreenRaw('level');
   }, []);
 
-  const completeLevel = useCallback((levelId, stars, moveCount, isDaily = false) => {
-    const coinsEarned = stars === 3 ? 30 : stars === 2 ? 20 : 10;
+  const completeLevel = useCallback((levelId, stars, moveCount, isDaily = false, usedHint = false) => {
+    // For daily challenges, use the challenge's coinReward; for regular levels use star-based coins
+    let coinsEarned;
+    if (isDaily) {
+      const challenge = DAILY_CHALLENGES.find(dc => dc.id === levelId);
+      coinsEarned = challenge ? challenge.coinReward : (stars === 3 ? 30 : stars === 2 ? 20 : 10);
+    } else {
+      coinsEarned = stars === 3 ? 30 : stars === 2 ? 20 : 10;
+    }
+
+    // Capture previousBest BEFORE updating save
+    const previousBest = save.stars[levelId] || 0;
 
     // Decide if we show interstitial BEFORE saving/navigating
     levelsCompletedSinceAd.current += 1;
@@ -137,14 +147,14 @@ export function GameProvider({ children }) {
     if (showAd) levelsCompletedSinceAd.current = 0;
 
     updateSave(s => {
-      const prev = s.stars[levelId] || 0;
-      const newStars = Math.max(prev, stars);
+      const newStars = Math.max(s.stars[levelId] || 0, stars);
       const updates = {
         stars: { ...s.stars, [levelId]: newStars },
         coins: s.coins + coinsEarned,
         totalCoinsEarned: (s.totalCoinsEarned || 0) + coinsEarned,
         levelsCompletedCount: (s.levelsCompletedCount || 0) + 1,
         sessionLevels: (s.sessionLevels || 0) + 1,
+        levelsWithoutHints: usedHint ? (s.levelsWithoutHints || 0) : (s.levelsWithoutHints || 0) + 1,
       };
       if (isDaily) {
         const today = new Date().toDateString();
@@ -154,17 +164,16 @@ export function GameProvider({ children }) {
     });
 
     setCompletionData({
-      levelId, stars, moveCount, coinsEarned, isDaily,
+      levelId, stars, moveCount, coinsEarned, isDaily, previousBest,
       nextLevelId: isDaily ? null : levelId < LEVELS.length ? levelId + 1 : null,
     });
 
     if (showAd) {
-      // LevelScreen will intercept and show the ad, then navigate to completion
       setInterstitialPending(true);
     } else {
       setScreenRaw('completion');
     }
-  }, [save.isPremium, updateSave]);
+  }, [save.isPremium, save.stars, updateSave]);
 
   const useHint = useCallback(() => {
     if (save.hints > 0) {

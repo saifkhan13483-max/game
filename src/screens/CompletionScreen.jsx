@@ -84,14 +84,15 @@ export default function CompletionScreen() {
     return () => clearTimeout(t);
   }, []);
 
-  if (!completionData) {
-    setScreen('home');
-    return null;
-  }
+  // Guard: if no completionData, redirect home safely via effect
+  useEffect(() => {
+    if (!completionData) setScreen('home');
+  }, [completionData, setScreen]);
 
-  const { levelId, stars, moveCount, coinsEarned, isDaily, nextLevelId } = completionData;
+  if (!completionData) return null;
+
+  const { levelId, stars, moveCount, coinsEarned, isDaily, nextLevelId, previousBest = 0 } = completionData;
   const levelDef = isDaily ? null : getLevelById(levelId);
-  const previousBest = save.stars[levelId] || 0;
   const isNewBest = stars > previousBest;
   const reduced = save.settings?.reducedMotion;
 

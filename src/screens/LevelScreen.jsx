@@ -59,6 +59,7 @@ export default function LevelScreen() {
     return types;
   });
   const [moveCount, setMoveCount] = useState(0);
+  const [hintUsedThisLevel, setHintUsedThisLevel] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [showPause, setShowPause] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -101,7 +102,7 @@ export default function LevelScreen() {
           const stars = getStarRating(moveCount, levelDef);
           completeLevel(
             isDailyChallenge ? levelDef.id : currentLevelId,
-            stars, moveCount, isDailyChallenge,
+            stars, moveCount, isDailyChallenge, hintUsedThisLevel,
           );
         }
       }, 750);
@@ -156,6 +157,7 @@ export default function LevelScreen() {
       return types;
     });
     setMoveCount(0);
+    setHintUsedThisLevel(false);
     setShowPause(false);
     setShowTutorial(levelDef.tutorial && !isDailyChallenge && currentLevelId <= 7);
   }, [levelDef, currentLevelId, isDailyChallenge]);
@@ -271,6 +273,7 @@ export default function LevelScreen() {
           hint={levelDef.hint}
           hintCount={save.hints}
           onClose={() => setShowHint(false)}
+          onHintUsed={() => setHintUsedThisLevel(true)}
         />
       )}
 

@@ -1,12 +1,13 @@
 import React from 'react';
 import { useGame } from '../context/GameContext.jsx';
 
-export default function HintModal({ hint, hintCount, onClose }) {
+export default function HintModal({ hint, hintCount, onClose, onHintUsed }) {
   const { useHint, watchAdForHint } = useGame();
 
   const handleUseHint = () => {
     const used = useHint();
     if (!used) return;
+    if (onHintUsed) onHintUsed();
     onClose();
   };
 

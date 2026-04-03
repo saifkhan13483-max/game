@@ -80,6 +80,7 @@ A neon laser puzzle game built as a React + Vite PWA.
 
 ### PWA
 - `public/manifest.json` for installability
+- `public/icon-192.png` and `public/icon-512.png` generated (neon diamond on dark bg)
 - Apple mobile web app meta tags
 - Portrait-locked mobile viewport
 
